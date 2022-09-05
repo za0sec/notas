@@ -364,8 +364,47 @@ union select 1,table_name,3,4,...,n from information_schema.tables where table_s
 
 
 
+--------------------------------///////\\\\\\\----------------------------------
 
- 
+// PADDING ORACLE ATTACK
+
+sirve para paginas de login donde nos podamos registrar.
+
+tendriamos que ver como esta hecha la cookie. Si esta hecha con CBC cypher podemos hacer muchos "exploits caseros":
+
+1) Una opcion seria con padbuster de la siguiente forma:
+padbuster http://IP/paginadelogin cookie-en-cifrado numero-de-bytes -cookie "tipo=cookie-en-cifrado" -encoding 0
+                                                         ⤥⤥⤥
+							probamos desde el 1 hasta el 10 por ej
+
+si esto funciona veriamos la cookie en texto claro (por ejemplo):
+user=javi
+
+entonces, como funciono podriamos hacer lo siguiente:
+padbuster http://IP/paginadelogin cookie-en-cifrado numero-de-bytes -cookie "tipo=cookie-en-cifrado" -encoding 0 -plaintext "user=admin" 
+
+una vez obtenida la cookie la pegamos en el cookie editor y cachapum.
+
+
+2) Otra opcion que podriamos probar seria la de en la pagina de registro poner en username:
+admin= y le doy a enter.
+la proxima vez que lo querramos hacer vamos a tener que poner admin== y asi sucesicamente...
+
+
+3) La otra opcion seria mediante burpsuite (BIT FLIPPER ATTACK):
+-creamos un usuario que se llame (por ejemplo): bdmin
+-una vez dentro interceptamos una peticion recargando esa pagina ya logueada.
+-lo mandamos al intruder
+-seleccionamos solo la cookie sin lo de atras del = y le damos a 'add'.
+-nos vamos a la pestana payload y en payload type seleccionamos bit flipper.
+-Format to original data: Literal value
+-nos vamos a options y si tenemos la opcion lo grepeamos por lo que diga mi nombre por ejemplo:
+"you are currently logged in as bdmin".
+-start attack
+-ahora buscamos hasta que diga admin y listo.
+-copiariamos la cookie computada y y la cambiariamos mediante el cookie editor o interceptando por burpsuite.
+
+
 --------------------------------///////\\\\\\\----------------------------------
 
 // USER PRIVILIGE ESCALATION
