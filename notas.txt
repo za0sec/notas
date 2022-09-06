@@ -407,6 +407,27 @@ la proxima vez que lo querramos hacer vamos a tener que poner admin== y asi suce
 
 --------------------------------///////\\\\\\\----------------------------------
 
+// SMB CLIENT
+crackmapexec smb IP
+
+smbclient -L IP -N
+           ^     ^
+           |    Null session
+         List  
+
+smbmap -H IP 
+        ^
+        |
+ Listado de permisos
+
+Nos fijamos cuales de los siguientes tienen permiso de lectura y escritura.
+
+Y ahora ponemos:
+smbclient //IP/directorio -N
+
+
+--------------------------------///////\\\\\\\----------------------------------
+
 // USER PRIVILIGE ESCALATION
 
 ----PAGINA-DE-INTERES----
