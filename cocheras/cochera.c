@@ -4,7 +4,7 @@
 #include "../../../pi/libreria/getnum.h"
 
 #define MONTHS 12
-#define CARS 16
+#define CARS 18
 #define COL 2
 #define ROW 8
 
@@ -20,7 +20,7 @@ int main(void){
         distribution[i] = malloc(COL * sizeof(int));
     }
 
-    int initial[ROW][COL] = {{0,7},{1,8},{2,9},{3,10},{4,11},{5,12},{6,13},{14,15}};
+    int initial[ROW][COL] = {{3,15},{4,14},{6,2},{5,1},{13,0},{12,7},{11,8},{10,9}};
     
     for (int i = 0; i < ROW; i++) {
         for (int j = 0; j < COL; j++) {
@@ -28,10 +28,10 @@ int main(void){
         }
     }
 
-    char * cars[CARS] = {"1A","3B","7B","7A","9B","PBA","2A","8A","10B","4A","1B","3A","5B","10A","5A","4B"};
+    char * cars[CARS] = {"1A","3B","7B","7A","9B","PBA","2A","8A","10B","4A","1B","5B","10A","4B","2B","3A"};
     char * month[MONTHS] = {"enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"};
     
-    puts("Distribucion del mes de Junio:");
+    puts("Distribucion del mes de Octubre:");
     printCars(distribution, cars);
     puts("-----\t\t\t\t-----");
     puts("\t |   |  |   |  |   |");
@@ -44,12 +44,8 @@ int main(void){
     puts("");
     int nNum;
 
-    if (num < 6)
-        nNum = (num + 6) % 12;
-    else if (num > 6)
-        nNum = (num - 6) % 12;
-    else
-        nNum = 0;  // No se desplaza nada en junio
+    nNum = (num + 2) % 12;
+
     
     for (int i=0; i<nNum; i++){
         distribution = moveToRight(distribution);        
@@ -77,12 +73,12 @@ int main(void){
 
 void printCars(int **distribution, char * cars[]){
 
-    puts("  \\   \\    ------   ------    /   /");
-    puts("   \\ 2B\\  |  6A  | | PB B |  /   /");
-    puts("    \\   \\ |      | |      | /   /");
+    printf("  \\   \\    ------   ------    /   /\n");
+    printf("   \\%s \\  |  6A  | | PB B |  /   /\n", cars[distribution[0][1]]);
+    printf("    \\%s \\ |      | |      | /   /\n", cars[distribution[0][0]]);
 
 
-    for (int i=0, j=1; i<ROW+1; i++){
+    for (int i=1, j=1; i<ROW+1; i++){
         puts("-----\t\t\t\t-----");
         if (i < ROW)
             printf("|%s\t\t\t\t  %s|\n", cars[distribution[i][0]], cars[distribution[i][1]]);
