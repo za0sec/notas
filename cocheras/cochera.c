@@ -69,7 +69,7 @@ int main(void){
     }
     free(distribution);
 
-    printf("Presione Enter para finalizar el programa...");
+    printf("\n\nPresione Enter para finalizar el programa...");
     getchar();
 
     return 0;
@@ -82,7 +82,7 @@ void printCars(int **distribution, char * cars[]){
     puts("    \\   \\ |      | |      | /   /");
 
 
-    for (int i=0, j=1; i<ROW+2; i++){
+    for (int i=0, j=1; i<ROW+1; i++){
         puts("-----\t\t\t\t-----");
         if (i < ROW)
             printf("|%s\t\t\t\t  %s|\n", cars[distribution[i][0]], cars[distribution[i][1]]);
